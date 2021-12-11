@@ -1,4 +1,6 @@
 # Logs
+.aws-sam/
+packaged.yaml
 logs
 *.log
 npm-debug.log*

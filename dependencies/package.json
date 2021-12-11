@@ -1,0 +1,17 @@
+{
+  "name": "dependency-layer",
+  "version": "1.0.0",
+  "description": "Lambda layer for dependencies",
+  "author": "allenheltondev",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.44.0",
+    "@aws-sdk/util-dynamodb": "^3.44.0",
+    "aws-sdk": "^2.1046.0",
+    "fast-average-color-node": "^2.1.0",
+    "sharp": "^0.29.3"
+  },
+  "scripts": {},
+  "files": [],
+  "devDependencies": {}
+}

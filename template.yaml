@@ -1,0 +1,138 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Mastermind Clone
+  Replica game of mastermind using machine learning to identify and process colors
+
+Parameters:
+  TableName:
+    Type: String
+    Default: mastermind
+
+Globals:
+  Function:
+    Runtime: nodejs14.x
+    Tracing: Active
+    Timeout: 5
+    MemorySize: 512
+    Layers:
+      - !Ref DependencyLayer
+  
+Resources:
+  DependencyLayer:
+    Type: AWS::Serverless::LayerVersion
+    Metadata:
+      BuildMethod: nodejs14.x
+    Properties:
+      LayerName: dependency-layer
+      ContentUri: dependencies/
+      CompatibleRuntimes:
+        - nodejs14.x
+
+  Api:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: dev
+      DefinitionBody:
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location: ./open-api-spec.yaml
+
+  CreateNewGameFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambdas/create-new-game/
+      Handler: index.handler
+      Role: !GetAtt CreateNewGameRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref TableName
+      Events:
+        AddNewGameEvent:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: /games
+            Method: POST
+
+  CreateNewGameRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: CreateNewGamePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                Resource: !GetAtt MastermindTable.Arn
+
+  GetBoundingBoxColorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambdas/get-bounding-box-color/
+      Handler: index.handler
+      Role: !GetAtt GetBoundingBoxColorRole.Arn
+      Environment:
+        Variables:
+          BUCKET_NAME: justin-christmas-gifts
+
+  GetBoundingBoxColorRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: GetBoundingBoxColorPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource: arn:aws:s3:::justin-christmas-gifts/*
+
+  OrderResultsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambdas/order-results/
+      Handler: index.handler
+
+  MastermindTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref TableName
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+              

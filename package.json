@@ -1,0 +1,14 @@
+{
+  "name": "aws-ml-color-analyzer",
+  "version": "1.0.0",
+  "description": "This is an example application that uses rekognition to detect objects and provide their color",
+  "devDependencies": {    
+    "eslint": "^6.8.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "scripts": {
+    "deploy": "sam build -t template.yaml --parallel --cached --use-container && sam package --output-template-file packaged.yaml --s3-bucket justin-christmas-gifts --profile home && sam deploy --template-file packaged.yaml --stack-name aws-ml-color-analyzer --capabilities CAPABILITY_IAM --profile home",
+    "diagram": "cfn-dia draw.io -t template.yaml -o infrastructure/diagram.drawio -c && drawio infrastructure/diagram.drawio -o infrastructure/diagram.png"
+  },
+  "license": "MIT"
+}

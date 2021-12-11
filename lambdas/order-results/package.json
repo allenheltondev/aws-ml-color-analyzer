@@ -1,0 +1,11 @@
+{
+  "name": "order-results",
+  "version": "1.0.0",
+  "description": "Orders results based on the left most bounding box to right most",
+  "main": "index.js",
+  "author": "allenheltondev",
+  "license": "MIT",
+  "dependencies": {},
+  "scripts": {},
+  "devDependencies": {}
+}

@@ -1,0 +1,16 @@
+{
+  "name": "create-new-game",
+  "version": "1.0.0",
+  "description": "Generates a new game and returns the identifier",
+  "main": "index.js",
+  "author": "allenheltondev",
+  "license": "MIT",
+  "dependencies": {
+    "http-status-codes": "^2.1.4",
+    "ulid": "^2.3.0"
+  },
+  "scripts": {},
+  "devDependencies": {
+    "aws-sdk": "^2.1046.0"
+  }
+}

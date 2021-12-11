@@ -1,0 +1,193 @@
+openapi: 3.0.0
+info:
+  title: Serverless Mastermind
+  description: API to control the serverless mastermind reference application
+  version: 1.0.0
+x-amazon-apigateway-cors:
+  allowOrigins:
+    - '*'
+  allowMethods:
+    - GET
+    - POST
+  allowHeaders:
+    - content-type
+  maxAge: 3600
+
+paths:
+  /games:
+    post:
+      summary: Start a new game
+      description: Creates a new game for immediate play      
+      responses:
+        201:
+          $ref: '#/components/responses/Created'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameModel'
+
+  /games/{gameId}/guesses:
+    parameters:
+      - $ref: '#/components/parameters/gameId'
+    get:
+      summary: Get all guesses for a specific game
+      description: Returns all the guesses and their responses for a provided game
+      responses:
+        200:
+          description: The request succeeded and the item is included in the response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListGuessModel'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      summary: Make a guess on a game
+      description: Add a guess on the game with the provided id
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - imageId
+              properties:
+                imageId:
+                  type: string
+                  description: Object key for an image in S3
+                  example: myimage.jpg
+        required: true
+      responses:
+        201:
+          description: The guess has been added and a result is returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResultModel"
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  parameters:
+    gameId:
+      name: gameId
+      in: path
+      description: Identifier for a game
+      required: true
+      example: 01FPMZBGDR5YEP503F3VQYB8FB
+      schema:
+        type: string
+
+  schemas:
+    GameModel:
+      type: object
+      required:
+        - answer
+      properties:
+        name:
+          type: string
+          description: Name of the game
+          example: My first game
+        answer:
+          $ref: "#/components/schemas/AnswerModel"
+
+    AnswerModel:
+      type: array
+      minItems: 2
+      items:
+        type: object
+        required:
+          - order
+          - color
+        properties:
+          order:
+            type: integer
+            minimum: 1
+            description: The number of this object in the sequence
+            example: 1
+          color:
+            type: string
+            enum: [blue, red, yellow, green, pink, purple]
+            description: The color of this object in the sequence
+            example: blue
+
+    ListGuessModel:
+      type: array
+      items:
+        $ref: "#/components/schemas/GuessModel"
+
+    GuessModel:
+      type: object
+      required:
+        - guess
+        - result
+      properties:
+        guess:
+          $ref: "#/components/schemas/AnswerModel"
+        result:
+          $ref: "#/components/schemas/ResultModel"
+
+    ResultModel:
+      type: object
+      required:
+        - wrongSpot
+        - rightSpot
+      properties:
+        wrongSpot:
+          type: integer
+          minimum: 0
+          description: Number of correct colors, but in the wrong spot
+          example: 1
+        rightSpot:
+          type: integer
+          minimum: 0
+          description: Number or correct colors in the correct spot
+          example: 2
+
+  responses:
+    Created: #201
+      description: The request succeeded and created a new item
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+            required:
+              - id
+    
+    NotFound: #404
+      description: The requested item was not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Could not find a game with the provided id.
+            required:
+              - message
+
+    InternalServerError: #500
+      description: The server encountered an unexpected condition which prevented it from fulfilling the request.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Something went wrong
+            required:
+              - message

@@ -1,0 +1,16 @@
+{
+  "name": "get-bounding-box-color",
+  "version": "1.0.0",
+  "description": "Determines the average color inside a provided bounding box for an image",
+  "main": "index.js",
+  "author": "allenheltondev",
+  "license": "MIT",
+  "dependencies": {
+    "hex-to-color-name": "^1.0.1",
+    "image-size": "^1.0.0"
+  },
+  "scripts": {},
+  "devDependencies": {
+    "aws-sdk": "^2.543.0"
+  }
+}
